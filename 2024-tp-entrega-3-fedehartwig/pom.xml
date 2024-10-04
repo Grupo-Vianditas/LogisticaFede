@@ -15,11 +15,9 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <micrometer.version>1.13.0</micrometer.version>
 
 
     <!-- Dependencies versions -->
-    <javalin.version>5.6.5</javalin.version>
     <junit.version>5.10.2</junit.version>
     <mockito.version>5.11.0</mockito.version>
     <retrofit.version>2.11.0</retrofit.version>
@@ -62,7 +60,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>2.0.7</version>
+      <version>${slf4j.version}</version>
     </dependency>
 
     <dependency>
@@ -96,22 +94,24 @@
       <version>${retrofit.version}</version>
     </dependency>
 
+
     <dependency>
       <groupId>io.javalin</groupId>
       <artifactId>javalin</artifactId>
-      <version>${javalin.version}</version>
+      <version>6.3.0</version>
     </dependency>
 
     <dependency>
       <groupId>io.javalin</groupId>
       <artifactId>javalin-micrometer</artifactId>
-      <version>${javalin.version}</version>
+      <version>6.3.0</version>
     </dependency>
+
 
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
-      <version>${micrometer.version}</version>
+      <version>1.13.4</version>
     </dependency>
 
     <dependency>
