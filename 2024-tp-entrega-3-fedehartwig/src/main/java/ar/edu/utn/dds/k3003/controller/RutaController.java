@@ -14,10 +14,9 @@ public class RutaController {
   private final Fachada fachada;
   private RutasCounter rutasCounter;
 
-  public RutaController(Fachada fachada , MetricsConfig metricsConfig) {
+  public RutaController(Fachada fachada, RutasCounter rutasCounter) {
     this.fachada = fachada;
-    var rutaController = new RutaController(fachada, metricsConfig); //Inicializo contador
-
+    this.rutasCounter = rutasCounter;
   }
 
   public void agregar(Context context) {

@@ -6,6 +6,8 @@ import ar.edu.utn.dds.k3003.controller.RutaController;
 import ar.edu.utn.dds.k3003.controller.TrasladoController;
 import ar.edu.utn.dds.k3003.facades.dtos.Constants;
 import ar.edu.utn.dds.k3003.metrics.MetricsConfig;
+import ar.edu.utn.dds.k3003.metrics.controllersCounters.RutasCounter;
+import ar.edu.utn.dds.k3003.metrics.controllersCounters.TrasladosCounter;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -79,8 +81,8 @@ public class WebApp {
         }).start(port);
 
 
-        var rutaController = new RutaController(fachada, metricsConfig);
-        var trasladosController = new TrasladoController(fachada);
+        var rutaController = new RutaController(fachada, new RutasCounter(metricsConfig));
+        var trasladosController = new TrasladoController(fachada, new TrasladosCounter(metricsConfig));
 
         app.post("/rutas", rutaController::agregar);
         app.get("/traslados/search/findByColaboradorId", trasladosController::trasladosColaborador);
@@ -104,42 +106,8 @@ public class WebApp {
 
 
 
-        //TODO: ESTO CREO QUE NO VA
-
-        // Seteo la jodita del conejo
-        MessageHandler messageHandler = new TemperaturaMessageHandler(fachada);
-        ErrorHandler errorHandler = new DefaultErrorHandler();
-
-        RabbitMQCloudConsumer consumer = new RabbitMQCloudConsumer(
-                env.get("QUEUE_NAME"),
-                env.get("QUEUE_HOST"),
-                env.get("QUEUE_USERNAME"),
-                env.get("QUEUE_PASSWORD"),
-                messageHandler,
-                errorHandler
-        );
-
-        try {
-            // Iniciar conexión y consumir mensajes
-            consumer.iniciarConexion();
-            consumer.consumirMensajes();
-
-            // Mantener la aplicación en ejecución
-            Thread.sleep(Long.MAX_VALUE);
-        } catch (Exception e) {
-            System.err.println("Error inicializando consumidor: " + e.getMessage());
-        } finally {
-            try {
-                consumer.cerrarConexion();
-            } catch (IOException | TimeoutException e) {
-                System.err.println("Error cerrando conexión: " + e.getMessage());
-            }
-        }
-
     }
 
-
-    //TODO: HASTA AQUI
 
 
 

@@ -17,8 +17,9 @@ public class TrasladoController {
   private final Fachada fachada;
   private TrasladosCounter trasladosCounter;
 
-  public TrasladoController(Fachada fachada) {
+  public TrasladoController(Fachada fachada, TrasladosCounter trasladosCounter) {
     this.fachada = fachada;
+    this.trasladosCounter = trasladosCounter;
   }
 
   public void asignar(Context context) {
