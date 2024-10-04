@@ -5,6 +5,7 @@ import ar.edu.utn.dds.k3003.clients.ViandasProxy;
 import ar.edu.utn.dds.k3003.controller.RutaController;
 import ar.edu.utn.dds.k3003.controller.TrasladoController;
 import ar.edu.utn.dds.k3003.facades.dtos.Constants;
+import ar.edu.utn.dds.k3003.metrics.MetricsConfig;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -42,73 +43,44 @@ import java.util.concurrent.TimeoutException;
 public class WebApp {
 
     private static final String TOKEN = "token123";
+
     public static void main(String[] args) {
 
-
         var env = System.getenv();
+
         // Variables de entorno
         var URL_VIANDAS = env.get("URL_VIANDAS");
         var URL_LOGISTICA = env.get("URL_LOGISTICA");
         var URL_HELADERAS = env.get("URL_HELADERAS");
         var URL_COLABORADORES = env.get("URL_COLABORADORES");
 
+
+
+
         var objectMapper = createObjectMapper();
         var fachada = new Fachada();
 
-        // Cosas de Migue para grafana
+        MetricsConfig metricsConfig = new MetricsConfig();
+        PrometheusMeterRegistry registry = metricsConfig.getRegistry();
+        final var micrometerPlugin = new MicrometerPlugin(config -> config.registry = registry);
 
-        final var registry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT);
-
-        // agregar aquí cualquier tag que aplique a todas las métrivas de la app
-        // (e.g. EC2 region, stack, instance id, server group)
-        registry.config().commonTags("app", "metrics-sample");
-
-        // agregamos a nuestro reigstro de métricas todo lo relacionado a infra/tech
-        // de la instancia y JVM
-        try (var jvmGcMetrics = new JvmGcMetrics();
-             var jvmHeapPressureMetrics = new JvmHeapPressureMetrics()) {
-            jvmGcMetrics.bindTo(registry);
-            jvmHeapPressureMetrics.bindTo(registry);
-        }
-        new JvmMemoryMetrics().bindTo(registry);
-        new ProcessorMetrics().bindTo(registry);
-        new FileDescriptorMetrics().bindTo(registry);
-
-
-        Counter heladerasPostCounter = Counter.builder("requests_total")
-                .tag("endpoint", "/heladeras")
-                .tag("method", "POST")
-                .description("Total POST requests to /heladeras")
-                .register(registry);
-
-        Counter heladerasGetCounter = Counter.builder("requests_total")
-                .tag("endpoint", "/heladeras/{heladeraId}")
-                .tag("method", "GET")
-                .description("Total GET requests to /heladeras/{heladeraId}")
-                .register(registry);
-
-        Counter temperaturasPostCounter = Counter.builder("requests_total")
-                .tag("endpoint", "/temperaturas")
-                .tag("method", "POST")
-                .description("Total POST requests to /temperaturas")
-                .register(registry);
-
-
+        fachada.setViandasProxy(new ViandasProxy(objectMapper));
 
         var port = Integer.parseInt(env.getOrDefault("PORT", "8080"));
 
-        fachada.setViandasProxy(new ViandasProxy(objectMapper));
-        fachada.setHeladerasProxy(new HeladerasProxy(objectMapper));
 
         var app = Javalin.create(config -> {
             config.jsonMapper(new JavalinJackson().updateMapper(mapper -> {
                 configureObjectMapper(mapper);
             }));
+
+            // Registra el plugin de métricas
+            config.registerPlugin(micrometerPlugin);
         }).start(port);
 
-        var rutaController = new RutaController(fachada);
-        var trasladosController = new TrasladoController(fachada);
 
+        var rutaController = new RutaController(fachada, metricsConfig);
+        var trasladosController = new TrasladoController(fachada);
 
         app.post("/rutas", rutaController::agregar);
         app.get("/traslados/search/findByColaboradorId", trasladosController::trasladosColaborador);
@@ -118,25 +90,21 @@ public class WebApp {
 
         // Controller metricas
         app.get("/metrics", ctx -> {
-                    // chequear el header de authorization y chequear el token bearer
-                    // configurado
-                    var auth = ctx.header("Authorization");
+            var auth = ctx.header("Authorization");
 
-                    if (auth != null && auth.intern() == "Bearer " + TOKEN) {
-                        ctx.contentType("text/plain; version=0.0.4")
-                                .result(registry.scrape());
-                    } else {
-                        // si el token no es el apropiado, devolver error,
-                        // desautorizado
-                        // este paso es necesario para que Grafana online
-                        // permita el acceso
-                        ctx.status(401).json("unauthorized access");
-                    }
-                }
-        );
-
+            if (auth != null && auth.equals("Bearer " + TOKEN)) {
+                ctx.contentType("text/plain; version=0.0.4")
+                        .result(registry.scrape());
+            } else {
+                ctx.status(401).json("unauthorized access");
+            }
+        });
 
         app.get("/", ctx -> ctx.result("Hola, soy una API y no un easter egg."));
+
+
+
+        //TODO: ESTO CREO QUE NO VA
 
         // Seteo la jodita del conejo
         MessageHandler messageHandler = new TemperaturaMessageHandler(fachada);
@@ -168,8 +136,12 @@ public class WebApp {
             }
         }
 
-
     }
+
+
+    //TODO: HASTA AQUI
+
+
 
     public static ObjectMapper createObjectMapper() {
         var objectMapper = new ObjectMapper();
