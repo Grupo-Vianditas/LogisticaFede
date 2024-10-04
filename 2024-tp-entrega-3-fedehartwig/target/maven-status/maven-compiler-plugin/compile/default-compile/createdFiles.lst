@@ -1,9 +1,12 @@
 ar\edu\utn\dds\k3003\model\Ruta.class
 ar\edu\utn\dds\k3003\model\SomeDomainObject.class
 ar\edu\utn\dds\k3003\repositories\RetiroDTORepository.class
+ar\edu\utn\dds\k3003\RabbitMQConsumer\Implementations\TemperaturaMessageHandler.class
 ar\edu\utn\dds\k3003\clients\HeladerasRetrofitClient.class
 ar\edu\utn\dds\k3003\model\logistica\Logistica.class
+ar\edu\utn\dds\k3003\metrics\controllersCounters\TrasladosCounter.class
 ar\edu\utn\dds\k3003\repositories\TrasladoMapper.class
+ar\edu\utn\dds\k3003\metrics\MetricsConfig.class
 ar\edu\utn\dds\k3003\model\Retiro.class
 ar\edu\utn\dds\k3003\model\Heladera.class
 ar\edu\utn\dds\k3003\repositories\HeladeraRepository.class
@@ -14,9 +17,14 @@ ar\edu\utn\dds\k3003\PersistenceIT.class
 ar\edu\utn\dds\k3003\clients\HeladerasProxy.class
 ar\edu\utn\dds\k3003\app\Fachada.class
 ar\edu\utn\dds\k3003\model\Traslado.class
+ar\edu\utn\dds\k3003\RabbitMQConsumer\Implementations\DefaultErrorHandler.class
 ar\edu\utn\dds\k3003\repositories\RutaRepository.class
+ar\edu\utn\dds\k3003\RabbitMQConsumer\Interfaces\ErrorHandler.class
 ar\edu\utn\dds\k3003\repositories\HeladeraMapper.class
+ar\edu\utn\dds\k3003\RabbitMQConsumer\RabbitMQCloudConsumer.class
 ar\edu\utn\dds\k3003\repositories\ViandaRepository.class
+ar\edu\utn\dds\k3003\RabbitMQConsumer\Implementations\DefaultMessageHandler.class
+ar\edu\utn\dds\k3003\RabbitMQConsumer\Interfaces\MessageHandler.class
 ar\edu\utn\dds\k3003\clients\ViandasRetrofitClient.class
 ar\edu\utn\dds\k3003\model\Vianda.class
 ar\edu\utn\dds\k3003\app\WebApp.class
@@ -27,3 +35,4 @@ ar\edu\utn\dds\k3003\model\logistica\SomeDomainObject.class
 ar\edu\utn\dds\k3003\clients\ViandasProxy.class
 ar\edu\utn\dds\k3003\controller\TrasladoController.class
 ar\edu\utn\dds\k3003\repositories\RutaMapper.class
+ar\edu\utn\dds\k3003\metrics\controllersCounters\RutasCounter.class
