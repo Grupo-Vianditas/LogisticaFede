@@ -28,11 +28,12 @@ public class TrasladoController {
       var trasladoDTORta = this.fachada.asignarTraslado(trasladoDTO);
       context.json(trasladoDTORta);
       context.status(HttpStatus.CREATED);
-      trasladosCounter.incrementSucessfulPostCounter();
+      trasladosCounter.incrementSuccessfulPostCounter();
 
     } catch (TrasladoNoAsignableException | NoSuchElementException e) {
       context.result(e.getLocalizedMessage());
       context.status(HttpStatus.BAD_REQUEST);
+      trasladosCounter.incrementFailedPostCounter();
     }
   }
 
@@ -41,9 +42,11 @@ public class TrasladoController {
     try {
       var trasladoDTO = this.fachada.buscarXId(id);
       context.json(trasladoDTO);
+      trasladosCounter.incrementSuccessfulGetCounter();
     } catch (NoSuchElementException ex) {
       context.result(ex.getLocalizedMessage());
       context.status(HttpStatus.NOT_FOUND);
+      trasladosCounter.incrementFailedGetCounter();
     }
   }
 
