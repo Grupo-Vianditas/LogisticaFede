@@ -55,6 +55,26 @@ public class TrasladoController {
     }
   }
 
+
+  public void depositar(Context context) {
+    var id = context.pathParamAsClass("id", Long.class).get();
+    try {
+      fachada.trasladoDepositado(id);
+    } catch (Exception e) {
+      System.out.println("Error al borrar la base de datos: " + e.getMessage());
+    }
+  }
+
+  public void retirar(Context context) {
+    var id = context.pathParamAsClass("id", Long.class).get();
+
+    try {
+      fachada.trasladoRetirado(id);
+    } catch (Exception e) {
+      System.out.println("Error al borrar la base de datos: " + e.getMessage());
+    }
+  }
+
   public void trasladosColaborador(Context context){
     var id = context.queryParamAsClass("colaboradorId", Long.class).get();
     try {
