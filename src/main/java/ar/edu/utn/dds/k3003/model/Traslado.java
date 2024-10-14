@@ -16,50 +16,36 @@ import javax.persistence.*;
 @Entity
 @Table(name = "traslado")
 public class Traslado {
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column
+    @Column(name = "qrVianda")
     private String qrVianda;
-
-    @OneToOne
-    @JoinColumn(name = "ruta_id", referencedColumnName = "id")
+    @ManyToOne
+    @JoinColumn(name = "ruta_id")
     private Ruta ruta;
-    @Column
     @Enumerated(EnumType.STRING)
-    private EstadoTrasladoEnum status;
-    @Column
+    @Column(name = "estado")
+    private EstadoTrasladoEnum estado;
+    @Column(name = "fechaCreacion")
+    private LocalDateTime fechaCreacion;
+    @Column(name = "fechaTraslado")
     private LocalDateTime fechaTraslado;
-    @Column
-    private Long colaboradorId;
-    @Column
-    private Integer heladeraOrigen;
-    @Column
-    private Integer heladeraDestino;
+    @Column(name = "collaboratorId")
+    private Long collaboratorId;
 
-    protected Traslado(){
-        super();
-    }
-
-    public Traslado(String qrVianda, EstadoTrasladoEnum status, LocalDateTime fechaTraslado,  Ruta ruta, Integer heladeraOrigen, Integer heladeraDestino) {
+    public Traslado(String qrVianda, Ruta ruta, EstadoTrasladoEnum estado, LocalDateTime fechaTraslado) {
         this.qrVianda = qrVianda;
         this.ruta = ruta;
-        this.status = status;
+        this.estado = estado;
+        this.fechaCreacion = LocalDateTime.now();
         this.fechaTraslado = fechaTraslado;
-        this.colaboradorId = ruta.getColaboradorId();
-        this.heladeraOrigen = heladeraOrigen;
-        this.heladeraDestino = heladeraDestino;
+        this.collaboratorId = ruta.getColaboradorId();
     }
 
-    public Traslado(TrasladoDTO traslado, Ruta ruta) {
-        this.qrVianda = traslado.getQrVianda();
-        this.ruta = ruta;
-        this.status = traslado.getStatus();
-        this.fechaTraslado = traslado.getFechaTraslado();
-        this.colaboradorId = traslado.getColaboradorId();
-        this.heladeraOrigen = traslado.getHeladeraOrigen();
-        this.heladeraDestino = traslado.getHeladeraDestino();
+    public Traslado() {
     }
 
 }

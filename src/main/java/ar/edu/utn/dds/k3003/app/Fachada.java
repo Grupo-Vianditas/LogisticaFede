@@ -20,6 +20,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ar.edu.utn.dds.k3003.repositories.auxiliar.PersistenceUtils.createEntityManagerFactory;
 
@@ -75,104 +76,83 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
     }
 
 
-    @Override
-    public TrasladoDTO asignarTraslado(TrasladoDTO traslado) throws TrasladoNoAsignableException {
-        /*try {
-            // Intenta buscar la vianda por el QR
-            ViandaDTO viandaDTO = fachadaViandas.buscarXQR(traslado.getQrVianda());
+    public Ruta buscarRutaXOrigenYDestino(Integer Origen, Integer Destino) throws NoSuchElementException {
+        List<Ruta> rutas = this.rutaRepository.findByHeladeras(Origen, Destino);
 
-            // Intenta encontrar rutas válidas para el traslado
-            List<Ruta> rutasPosibles = rutaRepository.findByHeladeras(traslado.getHeladeraOrigen(), traslado.getHeladeraDestino());
-
-            if (rutasPosibles.isEmpty()) {
-                throw new TrasladoNoAsignableException("noasignable");
-            }
-
-            Collections.shuffle(rutasPosibles);
-            Ruta ruta = rutasPosibles.get(0);
-
-            // Crea un nuevo traslado con la ruta seleccionada y otros detalles del traslado proporcionado
-            //TrasladoDTO trasladoNuevo = new TrasladoDTO(traslado.getQrVianda(), EstadoTrasladoEnum.ASIGNADO, LocalDateTime.now(), traslado.getHeladeraOrigen(), traslado.getHeladeraDestino());
-
-            Traslado trasladoNuevo = new Traslado(traslado.getQrVianda(), EstadoTrasladoEnum.ASIGNADO, LocalDateTime.now(), traslado.getHeladeraOrigen(),traslado.getHeladeraDestino());
-            trasladoNuevo.setColaboradorId(14L);
-            this.trasladoRepository.save(trasladoNuevo);
-
-            // Asigna un colaborador (o lo que corresponda)
-
-            // Aquí podrías guardar el traslado en la base de datos o realizar cualquier otra operación necesaria
-
-            return trasladoMapper.map(trasladoNuevo);
-        } catch (NoSuchElementException e) {
-            // Si no se encuentra la vianda, arrojar la excepción correspondiente
-            throw new NoSuchElementException("No se encontro el traslado");
-        }
-        */
-
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        rutaRepository.setEntityManager(entityManager);
-        trasladoRepository.setEntityManager(entityManager);
-
-        trasladoRepository.getEntityManager().getTransaction().begin();
-        fachadaViandas.buscarXQR(traslado.getQrVianda());
-
-        List<Ruta> rutasPosibles = this.rutaRepository.findByHeladeras(traslado.getHeladeraOrigen(), traslado.getHeladeraDestino());
-
-        if (rutasPosibles.isEmpty()) {
-            entityManager.getTransaction().rollback();
-            entityManager.close();
-
-            throw new TrasladoNoAsignableException("El traslado no es asignable, no tiene rutas posibles.");
+        if (rutas.isEmpty()) {
+            throw new NoSuchElementException("No hay ninguna ruta cargada para la heladeraOrigen " + Origen + " hacia la heladeraDestino " + Destino);
         }
 
+        if (rutas.size() > 1) {
+            // Selecciono una ruta al azar de las disponibles
+            Random rand = new Random();
+            return rutas.get(rand.nextInt(rutas.size()));
+        }
 
-        Traslado trasladoNuevo = new Traslado(traslado, rutasPosibles.get(0));
-
-
-        this.trasladoRepository.save(trasladoNuevo);
-
-        trasladoRepository.getEntityManager().getTransaction().commit();
-        trasladoRepository.getEntityManager().close();
-        rutaRepository.getEntityManager().close();
-
-        return trasladoMapper.map(trasladoNuevo);
-
+        // Si solo hay una ruta, la devuelvo
+        return rutas.get(0);
     }
+
+    @Override
+    public TrasladoDTO asignarTraslado(TrasladoDTO trasladoDTO) throws TrasladoNoAsignableException, NoSuchElementException {
+        Ruta ruta;
+
+        // Si no se encuentra la vianda, se lanza una excepción NoSuchElementException
+        ViandaDTO vianda = this.fachadaViandas.buscarXQR(trasladoDTO.getQrVianda());
+
+        // Si no se encuentra una ruta para ese origen y destino, se lanza una excepción TrasladoNoAsignableException
+        try {
+            ruta = buscarRutaXOrigenYDestino(trasladoDTO.getHeladeraOrigen(), trasladoDTO.getHeladeraDestino());
+        } catch (NoSuchElementException e) {
+            throw new TrasladoNoAsignableException(e.getLocalizedMessage());
+        }
+
+        // Si ya existe un traslado para esa vianda y esa ruta, se lanza una excepción TrasladoNoAsignableException. Lo dejo comentado porque rompe un test, pero esto es necesario tenerlo en cuenta porque sino se pueden añadir muchos traslados iguales y no tiene sentido.
+
+        if (!this.trasladoRepository.findByRuta(ruta).isEmpty()) {
+            throw new TrasladoNoAsignableException("Ya existe un traslado para la vianda " + trasladoDTO.getQrVianda() + " con el id de ruta " + ruta.getId() + " desde la heladera origen " + ruta.getHeladeraIdOrigen() + " hacia la heladera destino " + ruta.getHeladeraIdDestino() +" asignado al colaborador " + ruta.getColaboradorId() + ".");
+        }
+
+        // Si tanto la ruta como la vianda existen, procedo a crear y guardar el traslado
+        Traslado traslado = this.trasladoRepository.save(
+                new Traslado(
+                        trasladoDTO.getQrVianda(),
+                        ruta,
+                        EstadoTrasladoEnum.ASIGNADO,
+                        trasladoDTO.getFechaTraslado()
+                )
+        );
+
+        // Creo un DTO con la información del traslado
+        TrasladoDTO traslado_dto = new TrasladoDTO(
+                traslado.getQrVianda(),
+                traslado.getEstado(),
+                traslado.getFechaTraslado(),
+                traslado.getRuta().getHeladeraIdOrigen(),
+                traslado.getRuta().getHeladeraIdDestino()
+        );
+
+        // Asigno el id del colaborador que está en la ruta al trasladoDTO
+        traslado_dto.setColaboradorId(ruta.getColaboradorId());
+
+        // Asigno el id del traslado generado al DTO
+        traslado_dto.setId(traslado.getId());
+
+        // Retorna un DTO con la información del traslado completa
+        return traslado_dto;
+    }
+
 
 
     @Override
     public List<TrasladoDTO> trasladosDeColaborador(Long colaboradorId, Integer mes, Integer anio) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        trasladoRepository.setEntityManager(entityManager);
-        trasladoRepository.getEntityManager().getTransaction().begin();
+        List<Traslado> traslados = this.trasladoRepository.findByColaborador(colaboradorId, mes, anio);
+        return traslados.stream()
+                .map(this.trasladoMapper::map)
+                .collect(Collectors.toList());
 
-        List<Traslado> trasladosDeColaborador = trasladoRepository.findByColaborador(colaboradorId);
-
-        //List<Traslado> trasladosDeColaboradorPedidos = trasladosDeColaborador.stream().filter(x -> x.getFechaTraslado().getMonthValue() == mes
-        //&& x.getFechaTraslado().getYear() == anio).toList();
-
-        trasladoRepository.getEntityManager().getTransaction().commit();
-        trasladoRepository.getEntityManager().close();
-
-
-        return trasladosDeColaborador.stream().map(trasladoMapper::map).toList();
 
     }
-
-    @Override
-    public void setHeladerasProxy(FachadaHeladeras fachadaHeladeras) {
-        this.fachadaHeladeras = fachadaHeladeras;
-    }
-
-    @Override
-    public void setViandasProxy(FachadaViandas fachadaViandas) {
-        this.fachadaViandas = fachadaViandas;
-    }
-
-    public List<TrasladoDTO> traslados = new ArrayList<>();
-
-
-    public List<ViandaDTO> viandas = new ArrayList<>();
 
 
     @Override
@@ -211,19 +191,17 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
     }
 
     @Override
-    public TrasladoDTO buscarXId(Long aLong) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        trasladoRepository.setEntityManager(entityManager);
-        trasladoRepository.getEntityManager().getTransaction().begin();
-        Traslado trasladoBuscado = this.trasladoRepository.findById(aLong);
-        trasladoRepository.getEntityManager().getTransaction().commit();
-        trasladoRepository.getEntityManager().close();
-        return trasladoMapper.map(trasladoBuscado);
+    public TrasladoDTO buscarXId(Long idTraslado) {
+        Traslado traslado = this.trasladoRepository.findById(idTraslado);
+        TrasladoDTO trasladoDTO= new TrasladoDTO(traslado.getQrVianda(), traslado.getEstado(), traslado.getFechaTraslado(), traslado.getRuta().getHeladeraIdOrigen(), traslado.getRuta().getHeladeraIdDestino());
+        trasladoDTO.setColaboradorId(traslado.getRuta().getColaboradorId());
+        trasladoDTO.setId(traslado.getId());
+        return trasladoDTO;
     }
 
-    public RetiroDTO buscarRetiro(Long codigo) {
-        return retiroDTOMapper.map(this.retiroDTORepository.findByRetiros(codigo));
-    }
+//    public RetiroDTO buscarRetiro(Long codigo) {
+//        return retiroDTOMapper.map(this.retiroDTORepository.findByRetiros(codigo));
+//    }
 
     public ViandaDTO buscarVianda(String qr) {
         return viandaMapper.map(this.viandaRepository.findById(qr));
@@ -239,5 +217,15 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
         entityManager.getTransaction().commit();
 
 
+    }
+
+    @Override
+    public void setHeladerasProxy(FachadaHeladeras fachadaHeladeras) {
+        this.fachadaHeladeras = fachadaHeladeras;
+    }
+
+    @Override
+    public void setViandasProxy(FachadaViandas fachadaViandas) {
+        this.fachadaViandas = fachadaViandas;
     }
 }

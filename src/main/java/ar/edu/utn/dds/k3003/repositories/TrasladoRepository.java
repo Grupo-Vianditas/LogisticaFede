@@ -52,7 +52,7 @@ public class TrasladoRepository {
 
         entityManager.getTransaction().begin();
         Traslado traslado = this.findById(idTraslado);
-        traslado.setStatus(estado);
+        traslado.setEstado(estado);
         entityManager.merge(traslado);
         entityManager.getTransaction().commit();
     }
@@ -60,17 +60,36 @@ public class TrasladoRepository {
     public Traslado findById(Long id) {
         Optional<Traslado> first = this.traslados.stream().filter(x -> x.getId().equals(id)).findFirst();
         return first.orElseThrow(() -> new NoSuchElementException(
-                String.format("No hay un traslado de id: %s", id)
+                String.format("No hay un ruta de id: %s", id)
         ));
     }
 
-    public List<Traslado> findByColaborador (Long colaboradorId){
+    public List<Traslado> findByColaborador (Long colaboradorId, Integer mes, Integer anio){
 
-        List<Traslado> traslados = entityManager.createQuery("SELECT c FROM Traslado c WHERE c.colaboradorId = : colaboradorId", Traslado.class)
-                .setParameter("colaboradorId", colaboradorId)
-                .getResultList();
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Traslado> criteriaQuery = criteriaBuilder.createQuery(Traslado.class);
+        Root<Traslado> root = criteriaQuery.from(Traslado.class);
 
-        return traslados;
+        Predicate colaborador_id = criteriaBuilder.equal(root.get("collaboratorId"), colaboradorId);
+        Predicate fecha_mes = criteriaBuilder.equal(criteriaBuilder.function("MONTH", Integer.class, root.get("fechaTraslado")), mes);
+        Predicate fecha_anio = criteriaBuilder.equal(criteriaBuilder.function("YEAR", Integer.class, root.get("fechaTraslado")), anio);
+
+        criteriaQuery.select(root).where(criteriaBuilder.and(colaborador_id, fecha_mes, fecha_anio));
+
+        return entityManager.createQuery(criteriaQuery).getResultList();
+    }
+
+    public List<Traslado> findByRuta(Ruta ruta) {
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Traslado> criteriaQuery = criteriaBuilder.createQuery(Traslado.class);
+        Root<Traslado> root = criteriaQuery.from(Traslado.class);
+
+        Predicate ruta_query = criteriaBuilder.equal(root.get("ruta"), ruta);
+
+        criteriaQuery.select(root).where(criteriaBuilder.and(ruta_query));
+
+        return entityManager.createQuery(criteriaQuery).getResultList();
     }
 
     /*

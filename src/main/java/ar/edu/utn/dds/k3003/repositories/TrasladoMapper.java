@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 public class TrasladoMapper {
 
     public TrasladoDTO map(Traslado traslado) {
-        TrasladoDTO trasladoDTO = new TrasladoDTO(traslado.getQrVianda(),traslado.getStatus(),traslado.getFechaTraslado(),traslado.getRuta().getHeladeraIdOrigen(),
+        TrasladoDTO trasladoDTO = new TrasladoDTO(traslado.getQrVianda(),traslado.getEstado(),traslado.getFechaTraslado(),traslado.getRuta().getHeladeraIdOrigen(),
                 traslado.getRuta().getHeladeraIdDestino());
 
         trasladoDTO.setId(traslado.getId());
-        trasladoDTO.setColaboradorId(traslado.getColaboradorId());
+        trasladoDTO.setColaboradorId(traslado.getCollaboratorId());
 
         return trasladoDTO;
     }
