@@ -176,7 +176,6 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
         // Modifico los estados de la vianda y el traslado. Desprecio los retornos
         fachadaViandas.modificarEstado(vianda.getCodigoQR(), EstadoViandaEnum.DEPOSITADA);
         this.trasladoRepository.modificarEstado(traslado.getId(), EstadoTrasladoEnum.ENTREGADO);
-
     }
 
     @Override

@@ -6,6 +6,8 @@ import ar.edu.utn.dds.k3003.facades.dtos.EstadoViandaEnum;
 import ar.edu.utn.dds.k3003.facades.dtos.ViandaDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.HttpStatus;
+
+import java.io.IOException;
 import java.util.*;
 import lombok.SneakyThrows;
 import retrofit2.Response;
@@ -37,10 +39,20 @@ public class ViandasProxy implements FachadaViandas {
   }
 
   @Override
-  public ViandaDTO modificarEstado(String QR, EstadoViandaEnum estadoViandaEnum) {
-    ViandaDTO vianda = this.buscarXQR(QR);
-    vianda.setEstado(estadoViandaEnum);
-    return vianda;
+  public ViandaDTO modificarEstado(String s, EstadoViandaEnum estadoViandaEnum) throws NoSuchElementException {
+    Response <ViandaDTO> execute=null;
+    try{
+      execute=service.modificarEstado(s,estadoViandaEnum).execute();
+      if (execute.isSuccessful()) {
+        return execute.body();
+      }
+      if (execute.code() == HttpStatus.NOT_FOUND.getCode()) {
+        throw new NoSuchElementException("No se encontró el QR: " + s);
+      }
+      throw new RuntimeException("Error al obtener : " + execute.code());
+    }catch (IOException e){
+      throw new RuntimeException("Error de QR", e);
+    }
   }
 
   @Override
