@@ -35,16 +35,12 @@ public class TrasladoRepository {
     }
 
     public Traslado save(Traslado traslado) {
-        /*if (Objects.isNull(traslado.getId())) {
-            traslado.setId(seqId.getAndIncrement());
-            this.traslados.add(traslado);
-        }
-
-         */
         if (Objects.isNull(traslado.getId())) {
-            this.entityManager.persist(traslado);
-
+            entityManager.getTransaction().begin();
+            entityManager.persist(traslado);
+            entityManager.getTransaction().commit();
         }
+
         return traslado;
     }
 
