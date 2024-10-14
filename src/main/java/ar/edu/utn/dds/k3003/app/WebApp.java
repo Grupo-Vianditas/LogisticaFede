@@ -88,9 +88,12 @@ public class WebApp {
         app.get("/traslados/search/findByColaboradorId", trasladosController::trasladosColaborador);
         app.post("/traslados", trasladosController::asignar);
         app.post("/borrar", trasladosController::borrar);
+
         app.post("/depositar", trasladosController::depositar);
         app.post("/retirar", trasladosController::retirar);
         app.get("/traslados/{id}", trasladosController::obtener);
+
+        app.patch("/traslados/{id}",trasladosController::modificar);
 
 
         // Controller metricas

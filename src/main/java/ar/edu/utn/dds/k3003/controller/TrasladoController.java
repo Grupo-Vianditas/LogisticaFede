@@ -1,18 +1,24 @@
 package ar.edu.utn.dds.k3003.controller;
 
 import ar.edu.utn.dds.k3003.app.Fachada;
+import ar.edu.utn.dds.k3003.clients.ViandasRetrofitClient;
 import ar.edu.utn.dds.k3003.facades.dtos.TrasladoDTO;
+import ar.edu.utn.dds.k3003.facades.dtos.ViandaDTO;
 import ar.edu.utn.dds.k3003.facades.exceptions.TrasladoNoAsignableException;
 import ar.edu.utn.dds.k3003.metrics.controllersCounters.RutasCounter;
 import ar.edu.utn.dds.k3003.metrics.controllersCounters.TrasladosCounter;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
+import retrofit2.Response;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
+
 public class TrasladoController {
+
+  ViandasRetrofitClient viandasRetrofitClient;
 
   private final Fachada fachada;
   private TrasladosCounter trasladosCounter;
@@ -66,11 +72,43 @@ public class TrasladoController {
     } catch (Exception e) {
       System.out.println("Error al borrar la base de datos: " + e.getMessage());
     }
+
+    Response<ViandaDTO> excecute = null;
+
+    //try {
+    //  excecute = viandasRetrofitClient.Patch(viandaID, heladeraID);
+
+    //}
+  }
+
+  public void modificar(Context context) {
+    var id = context.pathParamAsClass("id", Long.class).get();
+    try {
+      TrasladoDTO trasladoDTO = context.bodyAsClass(TrasladoDTO.class);
+      trasladoDTO.setId(id);
+      String estado = trasladoDTO.getStatus().toString();
+
+      // Reviso que sea un estado valido, sino devuelvo una excepcion
+      switch (estado) {
+        case "EN_VIAJE":
+          this.fachada.trasladoRetirado(id);
+          break;
+        case "ENTREGADO":
+          this.fachada.trasladoDepositado(id);
+          break;
+        default:
+          context.result("Solo se puede cambiar el estado de un traslado a EN_VIAJE o ENTREGADO.");
+          context.status(HttpStatus.BAD_REQUEST);
+      }
+    }
+    catch(NoSuchElementException ex) {
+      context.result(ex.getLocalizedMessage());
+      context.status(HttpStatus.NOT_FOUND);
+    }
   }
 
   public void retirar(Context context) {
     var id = context.pathParamAsClass("id", Long.class).get();
-
     try {
       fachada.trasladoRetirado(id);
     } catch (Exception e) {

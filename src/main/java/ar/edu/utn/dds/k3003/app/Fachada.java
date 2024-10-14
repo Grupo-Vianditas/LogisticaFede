@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.app;
 
+import ar.edu.utn.dds.k3003.clients.ViandasRetrofitClient;
 import ar.edu.utn.dds.k3003.facades.FachadaHeladeras;
 import ar.edu.utn.dds.k3003.facades.FachadaLogistica;
 import ar.edu.utn.dds.k3003.facades.FachadaViandas;
@@ -178,7 +179,7 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
     public void trasladoRetirado(Long idTraslado) {
 
         TrasladoDTO traslado = this.buscarXId(idTraslado);
-
+        ViandaDTO vianda =  this.fachadaViandas.buscarXQR(traslado.getQrVianda());
         Ruta rutaDeTraslado = new Ruta(traslado.getColaboradorId(), traslado.getHeladeraOrigen(), traslado.getHeladeraDestino());
 
         RetiroDTO retiroDTO = new RetiroDTO(traslado.getQrVianda(), "1", traslado.getHeladeraOrigen());
@@ -215,13 +216,14 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
     @Override
     public void trasladoDepositado(Long idTraslado) {
 
-        TrasladoDTO traslado = buscarXId(idTraslado);
+        Traslado traslado = this.trasladoRepository.findById(idTraslado);
+        ViandaDTO viandaDTO = this.fachadaViandas.buscarXQR(traslado.getQrVianda());
 
         Ruta rutaDeTraslado = new Ruta(traslado.getColaboradorId(), traslado.getHeladeraOrigen(), traslado.getHeladeraDestino());
 
         fachadaHeladeras.depositar(traslado.getHeladeraDestino(), traslado.getQrVianda());
 
-        fachadaViandas.modificarEstado(traslado.getQrVianda(), EstadoViandaEnum.DEPOSITADA);
+        fachadaViandas.modificarEstado(viandaDTO.getCodigoQR(), EstadoViandaEnum.DEPOSITADA);
 
         fachadaViandas.modificarHeladera(traslado.getQrVianda(), traslado.getHeladeraDestino());
 
@@ -230,7 +232,8 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
                 traslado.getFechaTraslado(),
                 rutaDeTraslado,
                 rutaDeTraslado.getHeladeraIdOrigen(),
-                rutaDeTraslado.getHeladeraIdDestino()));
+                rutaDeTraslado.getHeladeraIdDestino())
+        );
 
         /*
         this.trasladoRepository.actualizarTrasladoDepositado(idTraslado);
