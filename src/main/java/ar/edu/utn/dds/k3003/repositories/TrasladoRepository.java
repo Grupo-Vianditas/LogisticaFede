@@ -38,6 +38,7 @@ public class TrasladoRepository {
         if (Objects.isNull(traslado.getId())) {
             entityManager.getTransaction().begin();
             entityManager.persist(traslado);
+
             entityManager.getTransaction().commit();
         }
 
@@ -54,10 +55,14 @@ public class TrasladoRepository {
     }
 
     public Traslado findById(Long id) {
-        Optional<Traslado> first = this.traslados.stream().filter(x -> x.getId().equals(id)).findFirst();
-        return first.orElseThrow(() -> new NoSuchElementException(
-                String.format("No hay un ruta de id: %s", id)
-        ));
+
+        Traslado traslado = entityManager.find(Traslado.class, id);
+
+        if (Objects.isNull(traslado)) {
+            throw new NoSuchElementException(String.format("No hay una ruta de id: %s", id));
+        }
+
+        return traslado;
     }
 
     public List<Traslado> findByColaborador (Long colaboradorId, Integer mes, Integer anio){
