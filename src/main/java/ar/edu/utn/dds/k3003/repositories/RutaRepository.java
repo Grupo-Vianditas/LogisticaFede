@@ -20,63 +20,56 @@ import java.util.*;
 @Setter
 
 public class RutaRepository {
-    private EntityManager entityManager;
-    private static AtomicLong seqId = new AtomicLong();
-    //private Collection<Ruta> rutas;
+    private final EntityManager entityManager;
 
-    public RutaRepository() {
-
-        //this.rutas = new ArrayList<>();
-    }
-
-
-    public RutaRepository(EntityManager entityManager){
-        super();
+    public RutaRepository(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
-    public Ruta save(Ruta ruta) {
+    public Ruta save(Ruta ruta) throws NoSuchElementException {
+
         if (Objects.isNull(ruta.getId())) {
-            //ruta.setId(seqId.getAndIncrement());
-            //this.rutas.add(ruta);
-            this.entityManager.persist(ruta);
+            entityManager.getTransaction().begin();
+            entityManager.persist(ruta);
+            entityManager.getTransaction().commit();
         }
+
         return ruta;
     }
 
     public Ruta findById(Long id) {
-        /*Optional<Ruta> first = this.rutas.stream().filter(x -> x.getId().equals(id)).findFirst();
-        return first.orElseThrow(() -> new NoSuchElementException(
-                String.format("No hay una ruta de id: %s", id)
-        ))
-         */
-        return this.entityManager.find(Ruta.class, id);
-    }
 
+        Ruta ruta = entityManager.find(Ruta.class, id);
+
+        if (Objects.isNull(ruta)){
+            throw new NoSuchElementException(String.format("No hay una ruta de id: %s", id));
+        }
+
+        return ruta;
+    }
 
     public List<Ruta> findByHeladeras(Integer heladeraOrigen, Integer heladeraDestino) {
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Ruta> criteriaQuery = criteriaBuilder.createQuery(Ruta.class);
         Root<Ruta> root = criteriaQuery.from(Ruta.class);
-        Predicate predicadoParaHeladeraOrigen = criteriaBuilder.equal(root.get("heladeraIdOrigen"), heladeraOrigen);
-        Predicate predicadoParaHeladeraDestino = criteriaBuilder.equal(root.get("heladeraIdDestino"), heladeraDestino);
 
-        Predicate predicadoFinal = criteriaBuilder.and(predicadoParaHeladeraOrigen, predicadoParaHeladeraDestino);
-
-        criteriaQuery.where(predicadoFinal);
+        criteriaQuery.select(root).where(
+                criteriaBuilder.equal(root.get("heladeraIdOrigen"), heladeraOrigen),
+                criteriaBuilder.equal(root.get("heladeraIdDestino"), heladeraDestino)
+        );
 
         return entityManager.createQuery(criteriaQuery).getResultList();
-
-        /*
-        return this.rutas.stream().filter(x -> x.getHeladeraIdOrigen().equals(heladeraOrigen) &&
-                x.getHeladeraIdDestino().equals(heladeraDestino)
-        ).toList();
-
-         */
-
-
     }
 
-
+    public void borrarTodo() {
+        entityManager.getTransaction().begin();
+        try {
+            int deletedCount = entityManager.createQuery("DELETE FROM Ruta").executeUpdate();
+            entityManager.getTransaction().commit();
+        } catch (Exception e) {
+            entityManager.getTransaction().rollback();
+            throw e;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package ar.edu.utn.dds.k3003.app;
 
 import ar.edu.utn.dds.k3003.clients.ViandasRetrofitClient;
+import ar.edu.utn.dds.k3003.facades.FachadaColaboradores;
 import ar.edu.utn.dds.k3003.facades.FachadaHeladeras;
 import ar.edu.utn.dds.k3003.facades.FachadaLogistica;
 import ar.edu.utn.dds.k3003.facades.FachadaViandas;
@@ -30,49 +31,37 @@ import javax.persistence.EntityManager;
 
 public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
 
-    private final static EntityManagerFactory entityManagerFactory = createEntityManagerFactory();
+    //private final static EntityManagerFactory entityManagerFactory = createEntityManagerFactory();
 
-    private final RutaRepository rutaRepository;
+    public final RutaRepository rutaRepository;
     private final RutaMapper rutaMapper;
-    private final HeladeraRepository heladeraRepository;
-    private final HeladeraMapper heladeraMapper;
-    private final TrasladoRepository trasladoRepository;
+    public final TrasladoRepository trasladoRepository;
     private final TrasladoMapper trasladoMapper;
-    private final RetiroDTOMapper retiroDTOMapper;
-    private final RetiroDTORepository retiroDTORepository;
-    private final ViandaMapper viandaMapper;
-    private final ViandaRepository viandaRepository;
     private FachadaViandas fachadaViandas;
     private FachadaHeladeras fachadaHeladeras;
+    private FachadaColaboradores fachadaColaboradores;
+    private EntityManagerFactory entityManagerFactory;
+    private EntityManager entityManager;
 
     public Fachada() {
-        this.rutaRepository = new RutaRepository();
+        this.entityManagerFactory = createEntityManagerFactory();
+        this.entityManager = entityManagerFactory.createEntityManager();
+        this.rutaRepository = new RutaRepository(entityManager);
+        this.trasladoRepository = new TrasladoRepository(entityManager);
         this.rutaMapper = new RutaMapper();
         this.trasladoMapper = new TrasladoMapper();
-        this.trasladoRepository = new TrasladoRepository();
-        this.heladeraMapper = new HeladeraMapper();
-        this.heladeraRepository = new HeladeraRepository();
-        this.retiroDTOMapper = new RetiroDTOMapper();
-        this.retiroDTORepository = new RetiroDTORepository();
-        this.viandaMapper = new ViandaMapper();
-        this.viandaRepository = new ViandaRepository();
     }
 
 
     @Override
-    public RutaDTO agregar(RutaDTO rutaDTO) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
-        rutaRepository.setEntityManager(entityManager);
-        rutaRepository.getEntityManager().getTransaction().begin();
-
-        Ruta ruta = new Ruta(rutaDTO.getColaboradorId(), rutaDTO.getHeladeraIdOrigen(), rutaDTO.getHeladeraIdDestino());
-        ruta = this.rutaRepository.save(ruta);
-
-        rutaRepository.getEntityManager().getTransaction().commit();
-        rutaRepository.getEntityManager().close();
-
-
-        return rutaMapper.map(ruta);
+    public RutaDTO agregar(RutaDTO rutaDTO) throws NoSuchElementException{
+        try {
+            Ruta ruta_sin_id = new Ruta(rutaDTO.getColaboradorId(), rutaDTO.getHeladeraIdOrigen(), rutaDTO.getHeladeraIdDestino());
+            Ruta ruta_con_id = this.rutaRepository.save(ruta_sin_id);
+            return rutaMapper.map(ruta_con_id);
+        } catch (NoSuchElementException e) {
+            throw new NoSuchElementException(e.getLocalizedMessage());
+        }
     }
 
 
@@ -198,15 +187,6 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
         trasladoDTO.setId(traslado.getId());
         return trasladoDTO;
     }
-
-//    public RetiroDTO buscarRetiro(Long codigo) {
-//        return retiroDTOMapper.map(this.retiroDTORepository.findByRetiros(codigo));
-//    }
-
-    public ViandaDTO buscarVianda(String qr) {
-        return viandaMapper.map(this.viandaRepository.findById(qr));
-    }
-
 
     public void borrar() {
         EntityManager entityManager = entityManagerFactory.createEntityManager();
