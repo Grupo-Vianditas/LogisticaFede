@@ -82,6 +82,7 @@ public class TrasladoController {
   }
 
   public void modificar(Context context) {
+
     var id = context.pathParamAsClass("id", Long.class).get();
     try {
       TrasladoDTO trasladoDTO = context.bodyAsClass(TrasladoDTO.class);
@@ -105,6 +106,7 @@ public class TrasladoController {
       context.result(ex.getLocalizedMessage());
       context.status(HttpStatus.NOT_FOUND);
     }
+
   }
 
   public void retirar(Context context) {

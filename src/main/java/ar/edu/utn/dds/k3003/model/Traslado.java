@@ -61,4 +61,5 @@ public class Traslado {
         this.heladeraOrigen = traslado.getHeladeraOrigen();
         this.heladeraDestino = traslado.getHeladeraDestino();
     }
+
 }

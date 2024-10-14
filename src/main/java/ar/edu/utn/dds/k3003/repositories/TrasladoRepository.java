@@ -48,6 +48,15 @@ public class TrasladoRepository {
         return traslado;
     }
 
+    public void modificarEstado(Long idTraslado, EstadoTrasladoEnum estado) {
+
+        entityManager.getTransaction().begin();
+        Traslado traslado = this.findById(idTraslado);
+        traslado.setStatus(estado);
+        entityManager.merge(traslado);
+        entityManager.getTransaction().commit();
+    }
+
     public Traslado findById(Long id) {
         Optional<Traslado> first = this.traslados.stream().filter(x -> x.getId().equals(id)).findFirst();
         return first.orElseThrow(() -> new NoSuchElementException(

@@ -178,38 +178,21 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
     @Override
     public void trasladoRetirado(Long idTraslado) {
 
-        TrasladoDTO traslado = this.buscarXId(idTraslado);
-        ViandaDTO vianda =  this.fachadaViandas.buscarXQR(traslado.getQrVianda());
-        Ruta rutaDeTraslado = new Ruta(traslado.getColaboradorId(), traslado.getHeladeraOrigen(), traslado.getHeladeraDestino());
+        Traslado traslado = this.trasladoRepository.findById(idTraslado);
+        ViandaDTO vianda = this.fachadaViandas.buscarXQR(traslado.getQrVianda());
 
-        RetiroDTO retiroDTO = new RetiroDTO(traslado.getQrVianda(), "1", traslado.getHeladeraOrigen());
+        RetiroDTO retiro = new RetiroDTO(
+                vianda.getCodigoQR(),
+                "123456789",
+                LocalDateTime.now(),
+                traslado.getRuta().getHeladeraIdOrigen()
+        );
 
-        fachadaHeladeras.retirar(retiroDTO);
+        fachadaHeladeras.retirar(retiro);
 
-        fachadaViandas.modificarEstado(traslado.getQrVianda(), EstadoViandaEnum.EN_TRASLADO);
-
-        trasladoRepository.save(new Traslado(traslado.getQrVianda(),
-                EstadoTrasladoEnum.EN_VIAJE,
-                traslado.getFechaTraslado(),
-                rutaDeTraslado,
-                rutaDeTraslado.getHeladeraIdOrigen(),
-                rutaDeTraslado.getHeladeraIdDestino()));
-
-        /*
-        Traslado trasladomap = this.trasladoRepository.actualizarTrasladoRetirado(idTraslado);
-        traslado = trasladoMapper.map(trasladomap);
-
-        //RetiroDTO heladeraRetirada = buscarRetiro(idTraslado);
-        RetiroDTO retiroNuevo = new RetiroDTO(traslado.getQrVianda(), "444", LocalDateTime.now(), 444);
-        retiroNuevo.setId(idTraslado);
-        this.fachadaHeladeras.retirar(retiroNuevo);
-        this.fachadaViandas.modificarEstado(traslado.getQrVianda(), EstadoViandaEnum.EN_TRASLADO);
-         */
-        //Vianda vianda = this.viandaRepository.buscarXQR(traslado.getQrVianda());
-        //this.viandaRepository.save(vianda);
-
-        //viandas.add(viandaDTO);
-        //Vianda viandaBase = new Vianda(vianda.getCodigoQR(), vianda.getFechaElaboracion(),EstadoViandaEnum.EN_TRASLADO, vianda.getColaboradorId(),vianda.getHeladeraId());
+        // Modifico los estados de la vianda y el traslado. Desprecio los retornos
+        fachadaViandas.modificarEstado(vianda.getCodigoQR(), EstadoViandaEnum.EN_TRASLADO);
+        this.trasladoRepository.modificarEstado(traslado.getId(), EstadoTrasladoEnum.EN_VIAJE);
 
     }
 
@@ -217,35 +200,14 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
     public void trasladoDepositado(Long idTraslado) {
 
         Traslado traslado = this.trasladoRepository.findById(idTraslado);
-        ViandaDTO viandaDTO = this.fachadaViandas.buscarXQR(traslado.getQrVianda());
+        ViandaDTO vianda = this.fachadaViandas.buscarXQR(traslado.getQrVianda());
 
-        Ruta rutaDeTraslado = new Ruta(traslado.getColaboradorId(), traslado.getHeladeraOrigen(), traslado.getHeladeraDestino());
+        fachadaViandas.modificarHeladera(vianda.getCodigoQR(), traslado.getRuta().getHeladeraIdDestino());
 
-        fachadaHeladeras.depositar(traslado.getHeladeraDestino(), traslado.getQrVianda());
+        // Modifico los estados de la vianda y el traslado. Desprecio los retornos
+        fachadaViandas.modificarEstado(vianda.getCodigoQR(), EstadoViandaEnum.DEPOSITADA);
+        this.trasladoRepository.modificarEstado(traslado.getId(), EstadoTrasladoEnum.ENTREGADO);
 
-        fachadaViandas.modificarEstado(viandaDTO.getCodigoQR(), EstadoViandaEnum.DEPOSITADA);
-
-        fachadaViandas.modificarHeladera(traslado.getQrVianda(), traslado.getHeladeraDestino());
-
-        trasladoRepository.save(new Traslado(traslado.getQrVianda(),
-                EstadoTrasladoEnum.ENTREGADO,
-                traslado.getFechaTraslado(),
-                rutaDeTraslado,
-                rutaDeTraslado.getHeladeraIdOrigen(),
-                rutaDeTraslado.getHeladeraIdDestino())
-        );
-
-        /*
-        this.trasladoRepository.actualizarTrasladoDepositado(idTraslado);
-        //RetiroDTO heladeraRetirada = buscarRetiro(idTraslado);
-
-        RetiroDTO retiroNuevo = new RetiroDTO(traslado.getQrVianda(), "444", LocalDateTime.now(), 444);
-        retiroNuevo.setId(idTraslado);
-        this.fachadaHeladeras.depositar(retiroNuevo.getHeladeraId(), retiroNuevo.getQrVianda());
-        this.fachadaViandas.modificarEstado(traslado.getQrVianda(), EstadoViandaEnum.DEPOSITADA);
-        this.fachadaViandas.modificarHeladera(traslado.getQrVianda(),2);}
-
-         */
     }
 
     @Override
