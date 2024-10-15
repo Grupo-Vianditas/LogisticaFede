@@ -10,7 +10,7 @@ public interface ViandasRetrofitClient {
   @GET("viandas/{qr}")
   Call<ViandaDTO> get(@Path("qr") String qr);
 
-  @PATCH("viandas/{qr}/estado")
+  @PATCH("viandas/{qr}/estado?estado={estado}")
   Call<ViandaDTO> modificarEstado(@Path("qr") String qr, @Body EstadoViandaEnum estado);
 
 }
