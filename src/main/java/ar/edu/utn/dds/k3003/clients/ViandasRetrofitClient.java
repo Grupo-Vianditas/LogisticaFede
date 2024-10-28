@@ -5,12 +5,24 @@ import ar.edu.utn.dds.k3003.facades.dtos.ViandaDTO;
 import retrofit2.Call;
 import retrofit2.http.*;
 
+import java.time.LocalDateTime;
+
 public interface ViandasRetrofitClient {
 
   @GET("viandas/{qr}")
   Call<ViandaDTO> get(@Path("qr") String qr);
 
-  @PATCH("viandas/{qr}/estado")
+  @PATCH("viandas/{qr}/estado?estado={estado}")
   Call<ViandaDTO> modificarEstado(@Path("qr") String qr, @Body EstadoViandaEnum estado);
+
+  @PATCH("viandas/{qr}/estado")
+  Call<ViandaDTO> modificarEstado(
+          @Path("qr") String qr,
+          @Query("status") EstadoViandaEnum status,
+          @Query("fechaTraslado") LocalDateTime fechaTraslado,
+          @Query("heladeraOrigen") Integer heladeraOrigen,
+          @Query("heladeraDestino") Integer heladeraDestino,
+          @Query("colaboradorId") Long colaboradorId
+  );
 
 }
