@@ -13,16 +13,9 @@ public interface ViandasRetrofitClient {
   Call<ViandaDTO> get(@Path("qr") String qr);
 
   @PATCH("viandas/{qr}/estado")
-  Call<ViandaDTO> modificarEstado(@Path("qr") String qr, @Body EstadoViandaEnum estado);
-
-  @PATCH("viandas/{qr}/estado")
   Call<ViandaDTO> modificarEstado(
           @Path("qr") String qr,
-          @Query("status") EstadoViandaEnum status,
-          @Query("fechaTraslado") LocalDateTime fechaTraslado,
-          @Query("heladeraOrigen") Integer heladeraOrigen,
-          @Query("heladeraDestino") Integer heladeraDestino,
-          @Query("colaboradorId") Long colaboradorId
+          @Query("status") EstadoViandaEnum status
   );
 
 }
