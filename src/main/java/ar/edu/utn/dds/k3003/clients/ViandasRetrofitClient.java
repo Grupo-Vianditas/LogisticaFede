@@ -15,7 +15,7 @@ public interface ViandasRetrofitClient {
   @PATCH("viandas/{qr}/estado")
   Call<ViandaDTO> modificarEstado(
           @Path("qr") String qr,
-          @Query("status") EstadoViandaEnum status
+          @Query("status") EstadoViandaEnum estado
   );
 
 }
