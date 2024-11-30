@@ -64,23 +64,6 @@ public class TrasladoController {
     }
   }
 
-
-  public void depositar(Context context) {
-    var id = context.pathParamAsClass("id", Long.class).get();
-    try {
-      fachada.trasladoDepositado(id);
-    } catch (Exception e) {
-      System.out.println("Error al borrar la base de datos: " + e.getMessage());
-    }
-
-    Response<ViandaDTO> excecute = null;
-
-    //try {
-    //  excecute = viandasRetrofitClient.Patch(viandaID, heladeraID);
-
-    //}
-  }
-
   public void modificar(Context context) {
 
     var id = context.pathParamAsClass("id", Long.class).get();
@@ -112,11 +95,49 @@ public class TrasladoController {
   public void retirar(Context context) {
     var id = context.pathParamAsClass("id", Long.class).get();
     try {
-      fachada.trasladoRetirado(id);
-    } catch (Exception e) {
-      System.out.println("Error al borrar la base de datos: " + e.getMessage());
+      TrasladoDTO trasladoDTO = context.bodyAsClass(TrasladoDTO.class);
+      trasladoDTO.setId(id);
+
+      String estado = trasladoDTO.getStatus().toString();
+
+      // Verifico que el estado sea EN_VIAJE
+      if ("EN_VIAJE".equals(estado)) {
+        this.fachada.trasladoRetirado(id);
+        context.result("El traslado ha sido marcado como EN_VIAJE.");
+        context.status(HttpStatus.OK);
+      } else {
+        context.result("El estado debe ser EN_VIAJE para realizar el retiro.");
+        context.status(HttpStatus.BAD_REQUEST);
+      }
+    } catch (NoSuchElementException ex) {
+      context.result("No se encontró el traslado con ID: " + id);
+      context.status(HttpStatus.NOT_FOUND);
     }
   }
+
+  public void depositar(Context context) {
+    var id = context.pathParamAsClass("id", Long.class).get();
+    try {
+      TrasladoDTO trasladoDTO = context.bodyAsClass(TrasladoDTO.class);
+      trasladoDTO.setId(id);
+
+      String estado = trasladoDTO.getStatus().toString();
+
+      // Verifico que el estado sea ENTREGADO
+      if ("ENTREGADO".equals(estado)) {
+        this.fachada.trasladoDepositado(id);
+        context.result("El traslado ha sido marcado como ENTREGADO.");
+        context.status(HttpStatus.OK);
+      } else {
+        context.result("El estado debe ser ENTREGADO para realizar el depósito.");
+        context.status(HttpStatus.BAD_REQUEST);
+      }
+    } catch (NoSuchElementException ex) {
+      context.result("No se encontró el traslado con ID: " + id);
+      context.status(HttpStatus.NOT_FOUND);
+    }
+  }
+
 
   public void trasladosColaborador(Context context){
     var id = context.queryParamAsClass("colaboradorId", Long.class).get();
