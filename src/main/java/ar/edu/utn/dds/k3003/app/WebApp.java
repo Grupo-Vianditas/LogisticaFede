@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.javalin.Javalin;
+import io.javalin.http.HttpStatus;
 import io.javalin.json.JavalinJackson;
 
 import io.javalin.micrometer.MicrometerPlugin;
@@ -95,6 +96,8 @@ public class WebApp {
         app.get("/traslados/{id}", trasladosController::obtener);
 
         app.patch("/traslados/{id}",trasladosController::modificar);
+
+        app.get("/status", ctx -> ctx.status(HttpStatus.OK));
 
 
         // Controller metricas
