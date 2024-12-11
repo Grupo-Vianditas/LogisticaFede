@@ -143,7 +143,9 @@ public class Fachada implements ar.edu.utn.dds.k3003.facades.FachadaLogistica {
 
     }
 
-
+    public TrasladoDTO obtenerTraslado(Long idTraslado){
+        return trasladoMapper.map(trasladoRepository.findById(idTraslado));
+    }
     @Override
     public void trasladoRetirado(Long idTraslado) {
 

@@ -91,8 +91,8 @@ public class WebApp {
         app.post("/traslados", trasladosController::asignar);
         app.post("/borrar", trasladosController::borrar);
 
-        app.post("/depositar", trasladosController::depositar);
-        app.post("/retirar", trasladosController::retirar);
+        app.post("/traslados/{id}/depositar", trasladosController::depositar);
+        app.post("/traslados/{id}/retirar", trasladosController::retirar);
         app.get("/traslados/{id}", trasladosController::obtener);
 
         app.patch("/traslados/{id}",trasladosController::modificar);

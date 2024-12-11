@@ -2,11 +2,13 @@ package ar.edu.utn.dds.k3003.controller;
 
 import ar.edu.utn.dds.k3003.app.Fachada;
 import ar.edu.utn.dds.k3003.clients.ViandasRetrofitClient;
+import ar.edu.utn.dds.k3003.facades.dtos.EstadoTrasladoEnum;
 import ar.edu.utn.dds.k3003.facades.dtos.TrasladoDTO;
 import ar.edu.utn.dds.k3003.facades.dtos.ViandaDTO;
 import ar.edu.utn.dds.k3003.facades.exceptions.TrasladoNoAsignableException;
 import ar.edu.utn.dds.k3003.metrics.controllersCounters.RutasCounter;
 import ar.edu.utn.dds.k3003.metrics.controllersCounters.TrasladosCounter;
+import ar.edu.utn.dds.k3003.model.Traslado;
 import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import io.javalin.http.HttpStatus;
@@ -95,18 +97,15 @@ public class TrasladoController {
   public void retirar(Context context) {
     var id = context.pathParamAsClass("id", Long.class).get();
     try {
-      TrasladoDTO trasladoDTO = context.bodyAsClass(TrasladoDTO.class);
-      trasladoDTO.setId(id);
+      TrasladoDTO trasladoDTO = fachada.obtenerTraslado(id);
+      EstadoTrasladoEnum estado = trasladoDTO.getStatus();
 
-      String estado = trasladoDTO.getStatus().toString();
-
-      // Verifico que el estado sea EN_VIAJE
-      if ("EN_VIAJE".equals(estado)) {
+      if (EstadoTrasladoEnum.ASIGNADO.equals(estado)) {
         this.fachada.trasladoRetirado(id);
         context.result("El traslado ha sido marcado como EN_VIAJE.");
         context.status(HttpStatus.OK);
       } else {
-        context.result("El estado debe ser EN_VIAJE para realizar el retiro.");
+        context.result("El estado debe ser ASIGNADO para realizar el retiro.");
         context.status(HttpStatus.BAD_REQUEST);
       }
     } catch (NoSuchElementException ex) {
@@ -118,18 +117,15 @@ public class TrasladoController {
   public void depositar(Context context) {
     var id = context.pathParamAsClass("id", Long.class).get();
     try {
-      TrasladoDTO trasladoDTO = context.bodyAsClass(TrasladoDTO.class);
-      trasladoDTO.setId(id);
+      TrasladoDTO trasladoDTO = fachada.obtenerTraslado(id);
+      EstadoTrasladoEnum estado = trasladoDTO.getStatus();
 
-      String estado = trasladoDTO.getStatus().toString();
-
-      // Verifico que el estado sea ENTREGADO
-      if ("ENTREGADO".equals(estado)) {
+      if (EstadoTrasladoEnum.EN_VIAJE.equals(estado)) {
         this.fachada.trasladoDepositado(id);
         context.result("El traslado ha sido marcado como ENTREGADO.");
         context.status(HttpStatus.OK);
       } else {
-        context.result("El estado debe ser ENTREGADO para realizar el depósito.");
+        context.result("El estado debe ser EN_VIAJE para realizar el depósito.");
         context.status(HttpStatus.BAD_REQUEST);
       }
     } catch (NoSuchElementException ex) {
