@@ -33,8 +33,8 @@ public class Traslado {
     private LocalDateTime fechaCreacion;
     @Column(name = "fechaTraslado")
     private LocalDateTime fechaTraslado;
-    @Column(name = "collaboratorId")
-    private Long collaboratorId;
+    @Column(name = "colaboradorId")
+    private Long colaboradorId;
 
     public Traslado(String qrVianda, Ruta ruta, EstadoTrasladoEnum estado, LocalDateTime fechaTraslado) {
         this.qrVianda = qrVianda;
@@ -42,7 +42,7 @@ public class Traslado {
         this.estado = estado;
         this.fechaCreacion = LocalDateTime.now();
         this.fechaTraslado = fechaTraslado;
-        this.collaboratorId = ruta.getColaboradorId();
+        this.colaboradorId = ruta.getColaboradorId();
     }
 
     public Traslado() {

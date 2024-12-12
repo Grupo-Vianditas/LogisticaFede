@@ -136,9 +136,12 @@ public class TrasladoController {
 
 
   public void trasladosColaborador(Context context){
-    var id = context.queryParamAsClass("colaboradorId", Long.class).get();
+    Integer anio = context.queryParamAsClass("anio", Integer.class).getOrDefault(null);
+    Integer mes = context.queryParamAsClass("mes", Integer.class).getOrDefault(null);
+    Long id = context.queryParamAsClass("colaboradorId", Long.class).get();
+
     try {
-      var listaDeTraslados = this.fachada.trasladosDeColaborador(id, LocalDateTime.now().getMonthValue(), LocalDateTime.now().getYear());
+      var listaDeTraslados = this.fachada.trasladosDeColaborador(id, mes, anio);
       context.json(listaDeTraslados);
     } catch (NoSuchElementException ex) {
       context.result(ex.getLocalizedMessage());

@@ -15,7 +15,7 @@ public class TrasladoMapper {
                 traslado.getRuta().getHeladeraIdDestino());
 
         trasladoDTO.setId(traslado.getId());
-        trasladoDTO.setColaboradorId(traslado.getCollaboratorId());
+        trasladoDTO.setColaboradorId(traslado.getColaboradorId());
 
         return trasladoDTO;
     }
