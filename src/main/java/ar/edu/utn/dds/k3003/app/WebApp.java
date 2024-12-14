@@ -68,7 +68,7 @@ public class WebApp {
         final var micrometerPlugin = new MicrometerPlugin(config -> config.registry = registry);
 
         fachada.setViandasProxy(new ViandasProxy(objectMapper));
-        fachada.setHeladerasProxy(new HeladerasProxy(objectMapper));
+        fachada.setHeladerasProxyTrue(new HeladerasProxy(objectMapper));
 
         var port = Integer.parseInt(env.getOrDefault("PORT", "8080"));
 
