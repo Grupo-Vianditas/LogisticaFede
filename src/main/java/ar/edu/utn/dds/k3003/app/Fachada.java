@@ -60,10 +60,8 @@ public class Fachada implements FachadaLogistica {
   @Override
   public RutaDTO agregar(RutaDTO rutaDTO) {
     try {
-      if(Objects.nonNull(buscarRutaXOrigenYDestino(
-              rutaDTO.getHeladeraIdOrigen(),
-              rutaDTO.getHeladeraIdDestino()
-      ))){
+      if(!this.rutaRepository.findByHeladeras(rutaDTO.getHeladeraIdOrigen(), rutaDTO.getHeladeraIdDestino()).isEmpty()
+){
         throw new RuntimeException("Ya existe una ruta para ese origen destino."
         );
       }
