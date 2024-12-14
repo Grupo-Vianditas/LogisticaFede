@@ -199,6 +199,7 @@ public class Fachada implements FachadaLogistica {
     Traslado traslado = this.trasladoRepository.findById(idTraslado);
     ViandaDTO vianda = this.fachadaViandas.buscarXQR(traslado.getQrVianda());
 
+    vianda.setHeladeraId(traslado.getRuta().getHeladeraIdDestino());
     fachadaViandas.modificarHeladera(
         vianda.getCodigoQR(), traslado.getRuta()
             .getHeladeraIdDestino()
