@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.app;
 
 import static ar.edu.utn.dds.k3003.repositories.auxiliar.PersistenceUtils.createEntityManagerFactory;
 
+import ar.edu.utn.dds.k3003.clients.HeladerasProxy;
 import ar.edu.utn.dds.k3003.facades.FachadaColaboradores;
 import ar.edu.utn.dds.k3003.facades.FachadaHeladeras;
 import ar.edu.utn.dds.k3003.facades.FachadaLogistica;
@@ -41,7 +42,7 @@ public class Fachada implements FachadaLogistica {
   public final TrasladoRepository trasladoRepository;
   private final TrasladoMapper trasladoMapper;
   private FachadaViandas fachadaViandas;
-  private FachadaHeladeras fachadaHeladeras;
+  private HeladerasProxy fachadaHeladeras;
   private FachadaColaboradores fachadaColaboradores;
   private EntityManagerFactory entityManagerFactory;
   private EntityManager entityManager;
@@ -180,9 +181,13 @@ public class Fachada implements FachadaLogistica {
         .getHeladeraIdOrigen()
     );
 
-    fachadaHeladeras.retirar(retiro);
+      try {
+          fachadaHeladeras.retirarVianda(retiro);
+      } catch (Exception e) {
+          throw new RuntimeException(e);
+      }
 
-    // Modifico los estados de la vianda y el traslado. Desprecio los retornos
+      // Modifico los estados de la vianda y el traslado. Desprecio los retornos
     fachadaViandas.modificarEstado(vianda.getCodigoQR(), EstadoViandaEnum.EN_TRASLADO);
     this.trasladoRepository.modificarEstado(traslado.getId(), EstadoTrasladoEnum.EN_VIAJE);
 
@@ -198,6 +203,11 @@ public class Fachada implements FachadaLogistica {
         vianda.getCodigoQR(), traslado.getRuta()
             .getHeladeraIdDestino()
     );
+    try {
+      fachadaHeladeras.depositarVianda(vianda);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
     // Modifico los estados de la vianda y el traslado. Desprecio los retornos
     fachadaViandas.modificarEstado(vianda.getCodigoQR(), EstadoViandaEnum.DEPOSITADA);
@@ -236,7 +246,11 @@ public class Fachada implements FachadaLogistica {
 
   @Override
   public void setHeladerasProxy(FachadaHeladeras fachadaHeladeras) {
-    this.fachadaHeladeras = fachadaHeladeras;
+
+  }
+
+  public void setHeladerasProxyTrue(HeladerasProxy heladerasProxy) {
+    this.fachadaHeladeras = heladerasProxy;
   }
 
   @Override

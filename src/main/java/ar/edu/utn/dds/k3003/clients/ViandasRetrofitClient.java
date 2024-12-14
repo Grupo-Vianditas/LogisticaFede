@@ -18,4 +18,10 @@ public interface ViandasRetrofitClient {
           @Query("estado") EstadoViandaEnum estado
   );
 
+  @PATCH("viandas/{qr}")
+  Call<ViandaDTO> modificarHeladera(
+          @Path("qr") String qr,
+          @Query("heladeraId") Integer heladeraId
+  );
+
 }

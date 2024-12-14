@@ -50,6 +50,37 @@ public class HeladerasProxy implements FachadaHeladeras {
 
   @Override
   public void retirar(RetiroDTO retiroDTO) throws NoSuchElementException {
+
+  }
+
+
+  public void depositarVianda(ViandaDTO viandaDTO) throws Exception {
+    Response<Void> execute = null;
+
+    try {
+      execute = service.depositar(viandaDTO).execute();
+
+      if(execute.code() != HttpStatus.OK.getCode()){
+        throw new Exception("Error al depositar la vianda");
+      }
+    } catch (Exception e) {
+      throw new Exception("Error al depositar la vianda: " + e.getMessage(), e);
+    }
+  }
+
+  public void retirarVianda(RetiroDTO retiroDTO) throws Exception {
+    Response<Void> execute = null;
+    try {
+      execute = service.retirar(retiroDTO).execute();
+
+      if (execute.isSuccessful()) {
+        return;
+      }
+      throw new Exception("Hubo un error procesando el retiro.");
+
+    } catch (Exception e) {
+      throw new Exception("Error al retirar la vianda: " + e.getMessage(), e);
+    }
   }
 
   @Override
