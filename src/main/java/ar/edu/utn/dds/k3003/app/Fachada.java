@@ -23,6 +23,7 @@ import ar.edu.utn.dds.k3003.repositories.TrasladoRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -57,8 +58,15 @@ public class Fachada implements FachadaLogistica {
   }
 
   @Override
-  public RutaDTO agregar(RutaDTO rutaDTO) throws NoSuchElementException {
+  public RutaDTO agregar(RutaDTO rutaDTO) {
     try {
+      if(Objects.nonNull(buscarRutaXOrigenYDestino(
+              rutaDTO.getHeladeraIdOrigen(),
+              rutaDTO.getHeladeraIdDestino()
+      ))){
+        throw new RuntimeException("Ya existe una ruta para ese origen destino."
+        );
+      }
       Ruta ruta_sin_id =
           new Ruta(
               rutaDTO.getColaboradorId(), rutaDTO.getHeladeraIdOrigen(),
